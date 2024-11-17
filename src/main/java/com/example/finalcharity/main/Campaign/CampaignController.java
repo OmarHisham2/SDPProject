@@ -38,4 +38,23 @@ public class CampaignController {
         return new ResponseEntity<>(createdCampaign, HttpStatus.CREATED);
     }
 
+    // PUT endpoint to update an existing campaign
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Campaign> updateCampaign(@PathVariable Long id, @RequestBody Campaign updatedCampaign) {
+        Campaign updated = campaignService.updateCampaign(id, updatedCampaign);
+        return new ResponseEntity<>(updated, HttpStatus.OK); // Return status 200 OK
+    }
+
+    // DELETE endpoint to delete a campaign
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteCampaign(@PathVariable Long id) {
+        campaignService.deleteCampaign(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // Return status 204 No Content
+    }
+
+    public void updateView() {
+        view.displayCampaignDetails(model.getName(), model.getDescription(), model.getGoalAmount(),
+                model.getCurrentAmount());
+    }
+
 }

@@ -48,4 +48,30 @@ public class CampaignService {
         return campaign;
     }
 
+    public Campaign updateCampaign(Long id, Campaign updatedCampaign) {
+        // Fetch existing campaign
+        Campaign existingCampaign = campaignRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Campaign not found with ID: " + id));
+
+        // Update fields
+        existingCampaign.setName(updatedCampaign.getName());
+        existingCampaign.setDescription(updatedCampaign.getDescription());
+        existingCampaign.setGoalAmount(updatedCampaign.getGoalAmount());
+        existingCampaign.setCurrentAmount(updatedCampaign.getCurrentAmount());
+        existingCampaign.setActive(updatedCampaign.isActive());
+        existingCampaign.setGoalReached(updatedCampaign.isGoalReached());
+
+        // Save the updated campaign
+        return campaignRepository.save(existingCampaign);
+    }
+
+    public void deleteCampaign(Long id) {
+        // Fetch the campaign to ensure it exists
+        Campaign campaign = campaignRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Campaign not found with ID: " + id));
+
+        // Delete the campaign
+        campaignRepository.delete(campaign);
+    }
+
 }
