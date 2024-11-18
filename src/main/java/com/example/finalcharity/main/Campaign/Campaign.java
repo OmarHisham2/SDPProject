@@ -71,4 +71,44 @@ public class Campaign {
         this.description = description;
     }
 
+    public double getGoalAmount() {
+        return goalAmount;
+    }
+
+    public void setGoalAmount(double goalAmount) {
+        this.goalAmount = goalAmount;
+    }
+
+    public double getCurrentAmount() {
+        return currentAmount;
+    }
+
+    public void setCurrentAmount(double currentAmount) {
+        this.currentAmount = currentAmount;
+    }
+
+    public List<Donation> getDonations() {
+        return donations;
+    }
+
+    public void setDonations(List<Donation> donations) {
+        this.donations = donations;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public boolean isGoalReached() {
+        return isGoalReached;
+    }
+
+    public void setGoalReached(boolean isGoalReached) {
+        this.isGoalReached = isGoalReached;
+    }
+
 }
