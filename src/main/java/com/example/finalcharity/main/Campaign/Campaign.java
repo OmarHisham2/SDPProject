@@ -1,9 +1,10 @@
 package com.example.finalcharity.main.Campaign;
 
 import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.example.finalcharity.main.Donation.Donation;
 
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 
 @Entity
 @Table(name = "campaigns")
-public class Campaign {
+public class Campaign implements Iterable<Donation> {
 
     public Campaign() {
     }
@@ -30,13 +31,25 @@ public class Campaign {
     private double goalAmount;
     private double currentAmount;
 
-    @OneToMany(mappedBy = "userId", fetch = FetchType.LAZY)
-    private List<Donation> donations;
+    @Convert(converter = CampaignStateConverter.class)
+    private CampaignState state;
 
+    public CampaignState getState() {
+        return state;
+    }
+
+    public void setState(CampaignState state) {
+        this.state = state;
+    }
+
+    @OneToMany(mappedBy = "campaign", fetch = FetchType.LAZY)
+    private List<Donation> donations = new ArrayList<>();
+
+    @JsonProperty("isActive")
     private boolean isActive;
     private boolean isGoalReached;
 
-    public Campaign(Long id, String name, String description, double goalAmount) {
+    public Campaign(Long id, String name, String description, double goalAmount, CampaignState state) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -45,10 +58,23 @@ public class Campaign {
         this.isActive = false;
         this.isGoalReached = false;
         this.donations = new ArrayList<Donation>();
+        this.state = state;
+    }
+
+    public void next() {
+        state.next(this);
+    }
+
+    public void prev() {
+        state.prev(this);
     }
 
     public Long getID() {
         return id;
+    }
+
+    public boolean getStatus() {
+        return isActive;
     }
 
     public void setID(Long id) {
@@ -95,10 +121,12 @@ public class Campaign {
         this.donations = donations;
     }
 
+    @JsonProperty("isActive")
     public boolean isActive() {
         return isActive;
     }
 
+    @JsonProperty("isActive")
     public void setActive(boolean isActive) {
         this.isActive = isActive;
     }
