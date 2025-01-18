@@ -1,6 +1,5 @@
 package com.example.finalcharity.main.Payment;
 
-
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
@@ -12,12 +11,22 @@ public class PaymentMethodConverter implements AttributeConverter<PaymentMethod,
         if (paymentMethod == null) {
             return null;
         }
-        if (paymentMethod instanceof CreditCardPayment) {
+        // Handle adapter cases (StripePaymentAdapter and AuthorizeNetPaymentAdapter)
+        if (paymentMethod instanceof StripePaymentAdapter) {
+            // We persist as "CREDIT_CARD" for StripePaymentAdapter
+            return "CREDIT_CARD";
+        } else if (paymentMethod instanceof AuthorizeNetPaymentAdapter) {
+            // We persist as "PAYPAL" for AuthorizeNetPaymentAdapter
+            return "PAYPAL";
+        }
+        // Handle original payment method cases
+        else if (paymentMethod instanceof CreditCardPayment) {
             return "CREDIT_CARD";
         } else if (paymentMethod instanceof PaypalPayment) {
             return "PAYPAL";
         }
-        // Add more cases if you have more payment methods
+
+        // Throw an exception if we encounter an unknown PaymentMethod type
         throw new IllegalArgumentException("Unknown PaymentMethod implementation: " + paymentMethod.getClass());
     }
 
@@ -28,13 +37,13 @@ public class PaymentMethodConverter implements AttributeConverter<PaymentMethod,
         }
         switch (dbData) {
             case "CREDIT_CARD":
-                // Return a default or placeholder CreditCardPayment instance
-                return new CreditCardPayment();
+                // Return a default or placeholder CreditCardPayment or StripePaymentAdapter instance
+                return new CreditCardPayment(); // Could return new StripePaymentAdapter() depending on context
             case "PAYPAL":
-                // Return a default or placeholder PaypalPayment instance
-                return new PaypalPayment();
-            // Add more cases if you have more payment methods
+                // Return a default or placeholder PaypalPayment or AuthorizeNetPaymentAdapter instance
+                return new PaypalPayment(); // Could return new AuthorizeNetPaymentAdapter() depending on context
             default:
+                // If we encounter an unrecognized database value, throw an exception
                 throw new IllegalArgumentException("Unknown database value for PaymentMethod: " + dbData);
         }
     }
