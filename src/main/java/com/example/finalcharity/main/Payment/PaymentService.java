@@ -1,22 +1,26 @@
 package com.example.finalcharity.main.Payment;
 
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final StripeService stripeService;
+    private final AuthorizeNetService authorizeNetService;
 
     @Autowired
-    public PaymentService(PaymentRepository paymentRepository) {
+    public PaymentService(PaymentRepository paymentRepository, StripeService stripeService, AuthorizeNetService authorizeNetService) {
         this.paymentRepository = paymentRepository;
+        this.stripeService = stripeService;
+        this.authorizeNetService = authorizeNetService;
     }
 
+    // Repository-related methods (CRUD operations)
     public List<Payment> getPayments() {
         return paymentRepository.findAll();
     }
@@ -63,4 +67,44 @@ public class PaymentService {
             return false;
         }).orElse(false);
     }
+
+    // Payment processing logic using the Template Method Pattern
+    public boolean processPayment(String paymentMethod, double amount, String cardNumber, String expiryDate, String cvv) {
+        PaymentProcessor processor;
+    
+        switch (paymentMethod.toLowerCase()) {
+            case "stripe":
+                processor = new StripePaymentProcessor(stripeService);
+                break;
+            case "authorize.net":
+                processor = new AuthorizeNetPaymentProcessor(authorizeNetService);
+                break;
+            case "paypal":
+                processor = new PaypalPaymentProcessor();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported payment method: " + paymentMethod);
+        }
+    
+        // Process the payment using the template method
+        boolean paymentSuccess = processor.processPayment(amount, cardNumber, expiryDate, cvv);
+    
+        // Save the payment to the repository if successful
+        if (paymentSuccess) {
+            Payment payment = new Payment();
+            payment.setAmount(amount);
+            payment.setStatus("COMPLETED");
+    
+            if (processor instanceof PaymentMethod) {
+                payment.setPaymentMethod((PaymentMethod) processor); // Cast processor to PaymentMethod
+            } else {
+                throw new IllegalArgumentException("Processor does not implement PaymentMethod interface.");
+            }
+    
+            paymentRepository.save(payment);
+        }
+    
+        return paymentSuccess;
+    }
+    
 }
