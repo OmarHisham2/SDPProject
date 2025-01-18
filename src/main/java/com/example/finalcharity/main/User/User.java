@@ -1,15 +1,13 @@
 package com.example.finalcharity.main.User;
 
+import java.util.List;
 
-import com.example.finalcharity.main.Campaign.Campaign;
 import com.example.finalcharity.main.Donation.Donation;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.List;
-import java.util.Map;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -24,57 +22,45 @@ import java.util.Map;
         @JsonSubTypes.Type(value = CharityOrganizationUser.class, name = "charity"),
         @JsonSubTypes.Type(value = AdminUser.class, name = "admin")
 })
-public abstract class User {
+public class User implements UserComponent {
+
     @Id
-    @SequenceGenerator(
-            name = "user_sequence",
-            sequenceName = "user_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "user_sequence"
-    )
-    protected Long userId;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    @SequenceGenerator(name = "user_seq", sequenceName = "user_sequence", allocationSize = 1)
+    private Integer userId;
 
+    @Enumerated(EnumType.STRING)
     @NotNull
-    protected String name;
+    protected UserType userType = UserType.NORMAL;
 
-    @NotNull
-    protected String email;
+    private String name;
+    private String email;
+    private String phone;
+    private String password;
+    private boolean active;
 
-    @NotNull
-    protected String phone;
-
-    @NotNull
-    protected boolean active = true;
-
-    @Transient
-    protected RegistrationContext registrationContext;
-
-@OneToMany
+    @OneToMany
     @JoinColumn(name = "donation_id")
     private List<Donation> donations;
 
-    // @OneToMany(mappedBy = "user")
-    // private List<Campaign> campaigns;
-
-
-    public User(Long userId, String name, String email, String phone) {
+    public User(Integer userId, UserType userType, String name, String email, String phone, String password) {
         this.userId = userId;
+        this.userType = userType;
         this.name = name;
         this.email = email;
         this.phone = phone;
+        this.password = password;
+        this.active = true;
     }
 
-    // No-argument constructor required by JPA
     public User() {}
 
-    public Long getUserId() {
+    // Getters and Setters
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
@@ -102,13 +88,42 @@ public abstract class User {
         this.phone = phone;
     }
 
-    public boolean isActive() { return active; }
-
-    public void setActive(boolean active)
-    { this.active = active;
-    //return this;
+    public String getPassword() {
+        return password;
     }
 
-    public abstract void register(Map<String, String> userData);
-}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    @Override
+    public void displayDetails() {
+        System.out.println("User: " + name + ", Email: " + email);
+    }
+
+    @Override
+    public void add(UserComponent component) {
+        throw new UnsupportedOperationException("Add operation not supported in User class");
+    }
+
+    @Override
+    public void remove(UserComponent component) {
+        throw new UnsupportedOperationException("Remove operation not supported in User class");
+    }
+}
