@@ -1,12 +1,15 @@
 package com.example.finalcharity.main.Campaign;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.example.finalcharity.main.Donation.Donation;
 import com.example.finalcharity.main.Donation.DonationService;
 import com.example.finalcharity.main.Sort.NewestDonationsFirst;
 import com.example.finalcharity.main.Sort.SortingService;
+
+import com.example.finalcharity.main.Command.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,21 +21,24 @@ public class CampaignService {
     private final DonationService donationService;
 
     @Autowired
-    public CampaignService(CampaignRepository campaignRepository, DonationService donationService) {
+    public CampaignService(CampaignRepository campaignRepository, @Lazy DonationService donationService) {
         this.campaignRepository = campaignRepository;
         this.donationService = donationService;
     }
 
     public Campaign createCampaign(Campaign campaign) {
-        return campaignRepository.save(campaign);
+        System.out.println("Creating campaign with requested active status: " + campaign.isActive());
+        Campaign newCampaign = campaignRepository.save(campaign);
+        System.out.println("Saved campaign with active status: " + newCampaign.isActive());
+        return newCampaign;
     }
 
-    public void donateToCampaign(Long campaignId, double amount, int userNotificationLevel) {
+    public void donateToCampaign(Campaign campaign, double amount, int userNotificationLevel) {
 
         Donation donation = new Donation();
         donation.setAmount(amount);
-        donation.setCampaignId(campaignId);
-
+        donation.setCampaign(campaign);
+        donationService.addDonation(donation);
     }
 
     public Campaign getCampaignDetails(Long id) {
@@ -47,6 +53,12 @@ public class CampaignService {
 
         return campaign;
     }
+
+    public List<Campaign> getAllCampaigns() {
+        return campaignRepository.findAll(); // Assuming JPA Repository
+    }
+
+
 
     public Campaign updateCampaign(Long id, Campaign updatedCampaign) {
         // Fetch existing campaign
@@ -74,4 +86,19 @@ public class CampaignService {
         campaignRepository.delete(campaign);
     }
 
+    public Optional<Campaign> getCampaignById(Long campaignId) {
+        return campaignRepository.findById(campaignId);
+    }
+
+    public void nextCampaign(Campaign campaign) {
+        Command command = new NextCampaignCommand(campaign);
+        command.execute();
+        campaignRepository.save(campaign);
+    }
+
+    public void prevCampaign(Campaign campaign) {
+        Command command = new PrevCampaignCommand(campaign);
+        command.execute();
+        campaignRepository.save(campaign);
+    }
 }

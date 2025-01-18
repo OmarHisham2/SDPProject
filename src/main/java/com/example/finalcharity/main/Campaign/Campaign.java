@@ -139,4 +139,28 @@ public class Campaign implements Iterable<Donation> {
         this.isGoalReached = isGoalReached;
     }
 
+    public DonationIterator getIterator() {
+        return new CampaignDonationIterator(donations);
+    }
+
+    @Override
+    public java.util.Iterator<Donation> iterator() {
+        return donations.iterator();
+    }
+
+    // Example usage in CampaignService:
+    public void printAllDonations(Campaign campaign) {
+        // Using custom iterator
+        DonationIterator iterator = campaign.getIterator();
+        while(iterator.hasNext()) {
+            Donation donation = iterator.next();
+            System.out.println("Donation amount: " + donation.getAmount());
+        }
+
+        // Or using Java's built-in iterator
+        for(Donation donation : campaign) {
+            System.out.println("Donation amount: " + donation.getAmount());
+        }
+    }
+
 }
